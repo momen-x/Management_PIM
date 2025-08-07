@@ -2,6 +2,10 @@ import Link from "next/link";
 import React from "react";
 import MobileMenu from "./MobileMenu";
 import { IPage } from "@/app/types/pages";
+import { cookies } from "next/headers";
+import { tokenName } from "@/app/utils/tokenName";
+import { verifyTokenForPage } from "@/app/utils/verifyToken";
+import LogOutPage from "@/app/logout/page";
 
 const pages: IPage[] = [
   { path: "/", name: "Home" },
@@ -14,10 +18,13 @@ const accountButtons: IPage[] = [
   { path: "/login", name: "Login" },
 ];
 
-const logOutButton: IPage = { path: "/logout", name: "Logout" };
+// const logOutButton: IPage = { path: "/logout", name: "Logout" };
 
-const Navbar = () => {
-  const isLoggedIn = false;
+const Navbar = async () => {
+  const cookieStore = cookies();
+  const token = (await cookieStore)?.get(tokenName);
+  const payload = verifyTokenForPage(token?.value || "");
+  // const isLoggedIn = ;
 
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200">
@@ -49,13 +56,21 @@ const Navbar = () => {
 
           {/* Account Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
-              <Link
-                href={logOutButton.path}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-              >
-                {logOutButton.name}
-              </Link>
+            {payload ? (
+              // <Link
+              //   href={logOutButton.path}
+              //   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+              // >
+              //   {logOutButton.name}
+              // </Link>
+              <>
+                <Link href={"/acountInfo"}>
+                  <div className="bg-sky-500 p-2 text-amber-50 rounded-lg cursor-pointer">
+                    {payload.name}
+                  </div>
+                </Link>
+                <LogOutPage />
+              </>
             ) : (
               <>
                 {accountButtons.map((btn, index) => (
@@ -79,8 +94,9 @@ const Navbar = () => {
           <MobileMenu
             pages={pages}
             accountButtons={accountButtons}
-            logOutButton={logOutButton}
-            isLoggedIn={isLoggedIn}
+            username={payload?.name}
+            // logOutButton={logOutButton}
+            isLoggedIn={payload?.id}
           />
         </div>
       </div>

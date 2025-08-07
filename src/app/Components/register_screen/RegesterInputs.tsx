@@ -1,17 +1,109 @@
 "use client";
-import { Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { domineName } from "@/app/utils/tokenName";
+import {
+  Alert,
+  Box,
+  Button,
+  Paper,
+  TextField,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-const RegesterInputs = () => {
-  const [regesterInputs, setRegesterInputs] = useState({
+const RegisterInputs = () => {
+  const router = useRouter();
+  const [registerInputs, setRegisterInputs] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const changeState = (e: any, name: string) => {
-    setRegesterInputs({ ...regesterInputs, [name]: e.target.value });
+    setRegisterInputs({ ...registerInputs, [name]: e.target.value });
+  };
+
+  // Form validation
+  const validateForm = () => {
+    
+    if (
+      !registerInputs.name.trim() ||
+      !registerInputs.email.trim() ||
+      !registerInputs.password.trim() ||
+      !registerInputs.confirmPassword.trim()
+    ) {
+      setError("Please fill in all fields");
+      return false;
+    }
+
+    if (registerInputs.password !== registerInputs.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    if (!registerInputs.email.includes("@")) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+
+    if (registerInputs.password.length < 8) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    return true;
+  };
+
+  const createNewAccount = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent form submission
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${domineName}/api/register`,
+        registerInputs
+      );
+
+      console.log("User created successfully:", response.data);
+
+      // Clear form
+      setRegisterInputs({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+
+      // Redirect to home page
+      location.reload();
+      router.push("/");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+
+      // Handle different error types
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.response?.status === 409) {
+        setError("User with this email already exists");
+      } else if (error.response?.status >= 500) {
+        setError("Server error. Please try again later");
+      } else {
+        setError("Registration failed. Please try again");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,6 +126,12 @@ const RegesterInputs = () => {
           borderRadius: 2,
         }}
       >
+        {error && (
+          <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Typography
           variant="h4"
           component="h1"
@@ -47,9 +145,10 @@ const RegesterInputs = () => {
         >
           Register
         </Typography>
+
         <Box
           component="form"
-          //   onSubmit={handleSubmit}
+          onSubmit={createNewAccount} // Handle form submission properly
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -60,54 +159,73 @@ const RegesterInputs = () => {
             fullWidth
             required
             variant="outlined"
-            label={"name"}
-            value={regesterInputs.name}
-            name="username"
-            id="username"
+            label="Full Name"
+            value={registerInputs.name}
+            name="name"
+            id="name"
             onChange={(e) => changeState(e, "name")}
+            disabled={loading}
           />
+
           <TextField
             fullWidth
             required
-            label="email"
+            label="Email"
+            type="email"
             variant="outlined"
-            value={regesterInputs.email}
+            value={registerInputs.email}
             name="email"
             id="email"
             onChange={(e) => changeState(e, "email")}
+            disabled={loading}
           />
+
           <TextField
             fullWidth
+            type="password"
             required
-            label="password"
+            label="Password"
             variant="outlined"
-            value={regesterInputs.password}
+            value={registerInputs.password}
             name="password"
             id="password"
             onChange={(e) => changeState(e, "password")}
+            disabled={loading}
           />
+
           <TextField
             fullWidth
             required
-            label="confirmPassword"
+            type="password"
+            label="Confirm Password"
             variant="outlined"
-            value={regesterInputs.confirmPassword}
+            value={registerInputs.confirmPassword}
             name="confirmPassword"
             id="confirmPassword"
             onChange={(e) => changeState(e, "confirmPassword")}
+            disabled={loading}
           />
+
           <Button
             type="submit"
             variant="contained"
             size="large"
             fullWidth
+            disabled={loading}
             sx={{
               mt: 2,
               py: 1.5,
               fontSize: "1rem",
             }}
           >
-            register
+            {loading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Registering...
+              </>
+            ) : (
+              "Register"
+            )}
           </Button>
         </Box>
       </Paper>
@@ -115,4 +233,4 @@ const RegesterInputs = () => {
   );
 };
 
-export default RegesterInputs;
+export default RegisterInputs;

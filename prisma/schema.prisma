@@ -41,9 +41,9 @@ model Product {
   tax       Int?
   discount  Int?
   total     Int
-  categorie String
+  categorie String?
   createdAt DateTime @default(now())
   ubdatedAt DateTime @default(now())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id],onDelete: Cascade)
 }

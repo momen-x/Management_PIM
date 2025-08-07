@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
-import { generateToken } from "@/app/utils/createToken";
+import { generateToken, setCookie } from "@/app/utils/createToken";
 import { IEditAcountInfo } from "@/app/utils/requestBodies";
 import jwt from "jsonwebtoken";
 
@@ -11,6 +11,9 @@ import {
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { JwtPayload } from "@/app/types/pages";
+import { verifyToken } from "@/app/utils/verifyToken";
+import { cookies } from "next/headers";
+import { tokenName } from "@/app/utils/tokenName";
 interface Iprops {
   params: Promise<{ id: string }>;
 }
@@ -25,7 +28,6 @@ interface IPasswordDeleteAcount {
  * @access private (just by user themself or by admin)
  */
 export async function GET(request: NextRequest, { params }: Iprops) {
-  //to do if id storage in cookie ===this user id or the user is admin can show information this user
   try {
     const id = +(await params).id;
     if (isNaN(id)) {
@@ -34,6 +36,20 @@ export async function GET(request: NextRequest, { params }: Iprops) {
         { status: 404 }
       );
     }
+    const isUser = verifyToken(request);
+    if (isUser === null) {
+      return NextResponse.json(
+        { message: "Unauthorized: Please log in" },
+        { status: 401 }
+      );
+    }
+    if (isUser.id !== id && isUser.isAdmin === false) {
+      return NextResponse.json(
+        { message: "Unauthorized: You can only display your own account" },
+        { status: 403 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
@@ -60,7 +76,7 @@ export async function GET(request: NextRequest, { params }: Iprops) {
  * @method PUT
  * @route ~/api/profile/:id
  * @description edit user account
- * @access private (just by user themself or by admin)
+ * @access private (just by user themself)
  */
 export async function PUT(request: NextRequest, { params }: Iprops) {
   try {
@@ -69,6 +85,19 @@ export async function PUT(request: NextRequest, { params }: Iprops) {
       return NextResponse.json(
         { message: "the user not found check from id" },
         { status: 404 }
+      );
+    }
+    const isUser = verifyToken(request);
+    if (isUser === null) {
+      return NextResponse.json(
+        { message: "Unauthorized: Please log in" },
+        { status: 401 }
+      );
+    }
+    if (isUser.id !== id) {
+      return NextResponse.json(
+        { message: "Unauthorized: You can only edit your own account" },
+        { status: 403 }
       );
     }
     const existingUser = await prisma.user.findUnique({
@@ -85,7 +114,6 @@ export async function PUT(request: NextRequest, { params }: Iprops) {
     if (!existingUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
-    //to do storage token in cookie then check if the is have acount or admin
     const body = (await request.json()) as IEditAcountInfo;
 
     // Determine if this is a password change or info update
@@ -112,7 +140,6 @@ export async function PUT(request: NextRequest, { params }: Iprops) {
         );
       }
 
-      // Verify old password
       const isOldPasswordValid = await bcrypt.compare(
         body.oldPassword!,
         existingUser.password
@@ -173,15 +200,7 @@ export async function PUT(request: NextRequest, { params }: Iprops) {
           );
         }
       }
-      if (body.name) {
-        const token = generateToken({
-          id: existingUser.id,
-          name: existingUser.name,
-          email: existingUser.email,
-          isAdmin: existingUser.isAdmin,
-        });
-      }
-      // Update user info
+
       const updatedUser = await prisma.user.update({
         where: { id },
         data: {
@@ -199,13 +218,33 @@ export async function PUT(request: NextRequest, { params }: Iprops) {
         },
       });
 
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           message: "Profile updated successfully",
           user: updatedUser,
         },
         { status: 200 }
       );
+      const newToken = jwt.sign(
+        {
+          id: existingUser.id,
+          name: body.name,
+          email: body.email,
+          isAdmin: existingUser.isAdmin,
+        },
+        process.env.JWT_SECRET as string,
+        { expiresIn: "30d" }
+      );
+      response.cookies.set({
+        name: tokenName,
+        value: newToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+      return response;
     }
   } catch (error) {
     console.error("Profile update error:", error);
@@ -231,6 +270,20 @@ export async function DELETE(request: NextRequest, { params }: Iprops) {
         { status: 404 }
       );
     }
+    const isUser = verifyToken(request);
+    if (isUser === null) {
+      return NextResponse.json(
+        { message: "Unauthorized: Please log in" },
+        { status: 401 }
+      );
+    }
+    if (isUser.id !== id && isUser.isAdmin === false) {
+      return NextResponse.json(
+        { message: "Unauthorized: You can only delete your own account" },
+        { status: 403 }
+      );
+    }
+
     const body = (await request.json()) as IPasswordDeleteAcount;
     const validation = deleteAcount.safeParse(body);
     if (!validation.success) {
@@ -252,20 +305,24 @@ export async function DELETE(request: NextRequest, { params }: Iprops) {
         { status: 404 }
       );
     }
-    //to do check from cookie if the id ===id or the user is admin
-    const JWT_Token = request.cookies.get("PIM_token");
+    const JWT_Token = request.cookies.get(tokenName);
     const token = JWT_Token?.value as string;
-    const userFormToken: JwtPayload = jwt.verify(
-        token,
-        process.env.JWT_SECRET as string
-    ) ;
+    const userFormToken = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as JwtPayload;
+    if (userFormToken === null) {
+      return NextResponse.json({ message: "Access denied" }, { status: 403 });
+    }
+
     if (userFormToken.id !== user.id) {
-        return NextResponse.json(
-            { message: "Unauthorized: No token provided" },
-            { status: 401 }
-        );
+      return NextResponse.json(
+        { message: "Unauthorized: No token provided" },
+        { status: 401 }
+      );
     }
     await prisma.user.delete({ where: { id } });
+    (await cookies()).delete(tokenName);
     return NextResponse.json(
       { message: "deleted", user: user },
       { status: 200 }

@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import LogOutPage from "@/app/logout/page";
 import { IPage } from "@/app/types/pages";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -7,23 +8,31 @@ import { useState, useEffect } from "react";
 interface MobileMenuProps {
   pages: IPage[];
   accountButtons: IPage[];
-  logOutButton: IPage;
-  isLoggedIn: boolean;
+  isLoggedIn?: number;
+  username?: string;
 }
 
-const MobileMenu = ({ pages, accountButtons, logOutButton, isLoggedIn }: MobileMenuProps) => {
+const MobileMenu = ({
+  pages,
+  accountButtons,
+  isLoggedIn,
+  username,
+}: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isOpen && !(event.target as Element).closest('.mobile-menu-container')) {
+      if (
+        isOpen &&
+        !(event.target as Element).closest(".mobile-menu-container")
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   return (
@@ -63,16 +72,29 @@ const MobileMenu = ({ pages, accountButtons, logOutButton, isLoggedIn }: MobileM
               {page.name}
             </Link>
           ))}
-          
+
           <div className="pt-4 border-t border-gray-200 mt-4">
             {isLoggedIn ? (
-              <Link
-                href={logOutButton.path}
-                className="bg-red-500 hover:bg-red-600 text-white block px-3 py-2 text-base font-medium rounded-md transition-colors duration-200 text-center"
-                onClick={() => setIsOpen(false)}
-              >
-                {logOutButton.name}
-              </Link>
+              // <Link
+              //   href={logOutButton.path}
+              //   className="bg-red-500 hover:bg-red-600 text-white block px-3 py-2 text-base font-medium rounded-md transition-colors duration-200 text-center"
+              //   onClick={() => setIsOpen(false)}
+              // >
+              //   {logOutButton.name}
+              // </Link>
+              <>
+                <Link
+                  href={"/acountInfo"}
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
+                >
+                  <div className="bg-sky-500 p-2 text-amber-50 rounded-lg cursor-pointer w-23 my-2 align-baseline">
+                    {username}
+                  </div>
+                </Link>
+                <LogOutPage />
+              </>
             ) : (
               <div className="space-y-2">
                 {accountButtons.map((btn, index) => (

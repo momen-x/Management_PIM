@@ -9,7 +9,7 @@ interface IList {
   categorie: string;
 }
 
-export let listOfProducts: IList[] = [
+ let listOfProducts: IList[] = [
   {
     title: "tv",
     price: 300,

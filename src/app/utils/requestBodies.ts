@@ -24,13 +24,14 @@ export interface IEditAcountInfo {
 // }
 
 export interface IAddNewProducts {
+  userId: number;
   title: string;
   price: number;
   ads?: number;
   tax?: number;
   discount?: number;
-  total: number;
   categorie?: string;
+  
 }
 export interface IEditProductInfo {
   title?: string;

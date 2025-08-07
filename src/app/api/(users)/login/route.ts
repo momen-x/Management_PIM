@@ -54,9 +54,8 @@ export async function POST(request: NextRequest) {
       {
         message: "Authenticated",
         user: { id: user.id, name: user.name },
-        headers: { "Set-Cookie": cookie },
       },
-      { status: 200 }
+      { status: 200, headers: { "Set-Cookie": cookie } }
     );
   } catch (error) {
     return NextResponse.json(

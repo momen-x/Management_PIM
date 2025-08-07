@@ -13,7 +13,7 @@ const registerUser = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
-const editUserPassword= z
+const editUserPassword = z
   .object({
     oldPassword: z
       .string()
@@ -28,7 +28,7 @@ const editUserPassword= z
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "New passwords don't match",
     path: ["confirmPassword"],
-  }) ;
+  });
 
 const editUserInfo = z.object({
   name: z
@@ -38,8 +38,6 @@ const editUserInfo = z.object({
     .optional(),
   email: z.string().email("Please enter a valid email address").optional(),
 });
-
-
 
 const loginUser = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -51,22 +49,21 @@ const deleteAcount = z.object({
 });
 
 const addNewProduct = z.object({
+  userId: z.number().positive(),
   title: z.string().min(1, "Title is required"),
   price: z.number().positive("Price must be a positive number"),
-  ads: z.number().positive("Ads value must be positive").optional(),
-  discount: z.number().positive("Discount must be positive").optional(),
-  tax: z.number().positive("Tax must be positive").optional(),
-  total: z.number().positive("Total must be a positive number"),
+  ads: z.number().min(0, "Ads value must be positive").optional(),
+  discount: z.number().min(0, "Discount must be positive").optional(),
+  tax: z.number().min(0, "Tax must be positive").optional(),
   categorie: z.string().optional(),
 });
 
 const editProduct = z.object({
   title: z.string().min(1, "Title is required").optional(),
-  price: z.number().positive("Price must be a positive number").optional(),
-  ads: z.number().positive("Ads value must be positive").optional(),
-  discount: z.number().positive("Discount must be positive").optional(),
-  tax: z.number().positive("Tax must be positive").optional(),
-  total: z.number().positive("Total must be a positive number").optional(),
+  price: z.number().positive("the price must be postive value").optional(),
+  ads: z.number().min(0, "Ads value must be positive").optional(),
+  discount: z.number().min(0, "Discount must be positive").optional(),
+  tax: z.number().min(0, "Tax must be positive").optional(),
   categorie: z.string().optional(),
 });
 
@@ -78,7 +75,7 @@ export {
   loginUser,
   addNewProduct,
   editProduct,
-  deleteAcount
+  deleteAcount,
 };
 
 // Type exports for TypeScript usage
