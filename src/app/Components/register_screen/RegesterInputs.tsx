@@ -10,6 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -30,7 +31,6 @@ const RegisterInputs = () => {
 
   // Form validation
   const validateForm = () => {
-    
     if (
       !registerInputs.name.trim() ||
       !registerInputs.email.trim() ||
@@ -115,6 +115,8 @@ const RegisterInputs = () => {
         minHeight: "100vh",
         padding: 2,
         backgroundColor: "#f5f5f5",
+        flexDirection: "column",
+        gap: 1.4,
       }}
     >
       <Paper
@@ -229,6 +231,28 @@ const RegisterInputs = () => {
           </Button>
         </Box>
       </Paper>
+      <Box>
+        <Button
+          component={Link}
+          href="/login"
+          variant="outlined"
+          size="large"
+          fullWidth
+          disabled={loading}
+          sx={{
+            py: 1,
+            fontSize: "1rem",
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.main",
+              color: "#fff",
+            },
+          }}
+        >
+          login
+        </Button>
+      </Box>
     </Box>
   );
 };
