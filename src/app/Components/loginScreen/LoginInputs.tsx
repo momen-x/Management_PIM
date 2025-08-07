@@ -10,6 +10,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -67,14 +68,14 @@ const LoginInputs = () => {
       // console.error("Login error:", error);
 
       // if (error.response?.data?.message) {
-        // setError(error.response.data.message);
+      // setError(error.response.data.message);
       // }
-        // if (error.response?.status === 401) {
-        setError("Invalid email or password");
+      // if (error.response?.status === 401) {
+      setError("Invalid email or password");
       // } else if (error.response?.status >= 500) {
-        // setError("Server error. Please try again later");
+      // setError("Server error. Please try again later");
       // } else {
-        // setError("Login failed. Please try again");
+      // setError("Login failed. Please try again");
       // }
     } finally {
       setLoading(false);
@@ -90,6 +91,8 @@ const LoginInputs = () => {
         minHeight: "100vh",
         padding: 2,
         backgroundColor: "#f5f5f5",
+        flexDirection: "column",
+        gap:1.4
       }}
     >
       <Paper
@@ -179,6 +182,29 @@ const LoginInputs = () => {
           </Button>
         </Box>
       </Paper>
+      <Box>
+        {/* --- INSIDE the form, right under the Login button --- */}
+        <Button
+          component={Link}
+          href="/register"
+          variant="outlined"
+          size="large"
+          fullWidth
+          disabled={loading}
+          sx={{
+            py: 1,
+            fontSize: "1rem",
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.main",
+              color: "#fff",
+            },
+          }}
+        >
+          Sign up
+        </Button>
+      </Box>
     </Box>
   );
 };
