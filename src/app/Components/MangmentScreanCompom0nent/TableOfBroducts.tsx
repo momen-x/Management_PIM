@@ -85,11 +85,12 @@ const TableOfProducts = () => {
     try {
       if (confirm("are u sure u want delete this products")) {
         await axios.delete(`${domineName}/api/products/${id}`);
-        console.log("deleted");
+        // console.log("deleted");
         location.reload();
       }
     } catch (error) {
-      console.log(error);
+      return;
+      // console.log(error);
     }
   };
   const handleEditProduct = async (id: number, product: IProducts) => {
@@ -126,7 +127,8 @@ const TableOfProducts = () => {
       const data: IProducts[] = await res.data.data;
       setListOfProducts(data);
     } catch (error) {
-      console.log("error : ", error);
+      return;
+      // console.log("error : ", error);
     }
   };
 

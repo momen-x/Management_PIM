@@ -154,7 +154,7 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
-    console.log("from api id is", authUser.id);
+    // console.log("from api id is", authUser.id);
 
     await prisma.product.deleteMany({ where: { userId: authUser.id } });
     return NextResponse.json(

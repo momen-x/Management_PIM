@@ -75,7 +75,7 @@ const RegisterInputs = () => {
         registerInputs
       );
 
-      console.log("User created successfully:", response.data);
+      // console.log("User created successfully:", response.data);
 
       // Clear form
       setRegisterInputs({

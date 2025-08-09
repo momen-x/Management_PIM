@@ -51,8 +51,10 @@ const LoginInputs = () => {
     setLoading(true);
 
     try {
+      console.log("hi hi ");
+      
       const response = await axios.post(`${domineName}/api/login`, loginInputs);
-      // console.log("Login successful:", response.data);
+      console.log("Login successful:", response.data);
 
       // Clear form
       setLoginInputs({

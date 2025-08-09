@@ -12,8 +12,6 @@ interface ProductFormProps {
 }
 
 const InputAddProducts = ({ userId }: ProductFormProps) => {
-
-  
   const router = useRouter();
   const [productData, setProductData] = useState({
     title: "",
@@ -37,7 +35,8 @@ const InputAddProducts = ({ userId }: ProductFormProps) => {
         const response = await axios.get(`${domineName}/api/products`);
         setShowDellteAllbtn(response.data.meta.count);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
+        return;
       }
     };
     fetch();
@@ -130,20 +129,20 @@ const InputAddProducts = ({ userId }: ProductFormProps) => {
       };
 
       const response = await axios.post(`${domineName}/api/products`, body);
-      console.log("????>>>>>>>>>>>>>> : ",await response.data);
-      
+      // console.log("????>>>>>>>>>>>>>> : ", await response.data);
+
       return true;
     } catch (error: any) {
       // if (error.response?.data?.message) {
-        // setError(error.response.data.message);
+      // setError(error.response.data.message);
       // } else if (error.response?.data?.errors) {
-        // Handle validation errors from API
-        const errorMessages = error.response.data.errors
-          .map((err: any) => `${err.field}: ${err.message}`)
-          .join(", ");
-        setError(errorMessages);
+      // Handle validation errors from API
+      const errorMessages = error.response.data.errors
+        .map((err: any) => `${err.field}: ${err.message}`)
+        .join(", ");
+      setError(errorMessages);
       // } else {
-        setError("Failed to add product. Please try again later.");
+      setError("Failed to add product. Please try again later.");
       // }
       return false;
     }
@@ -196,12 +195,14 @@ const InputAddProducts = ({ userId }: ProductFormProps) => {
     try {
       if (confirm("are u sure u want delete all products ? ")) {
         await axios.delete(`${domineName}/api/products`);
-        console.log("deleted");
+        // console.log("deleted");
         setShowDellteAllbtn(0);
         location.reload();
       }
     } catch (error) {
-      console.log("error : ", error);
+      setError("error try agin");
+      return;
+      // console.log("error : ", error);
     }
   };
 
